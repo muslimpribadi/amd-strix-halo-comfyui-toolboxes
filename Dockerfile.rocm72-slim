@@ -1,0 +1,103 @@
+# ==========================================
+# STAGE 1: Build & Package Layer
+# ==========================================
+FROM registry.fedoraproject.org/fedora:rawhide AS builder
+
+RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
+    libdrm-devel python3.13 python3.13-devel git rsync libatomic \
+    gcc gcc-c++ binutils make mesa-libGL mesa-libEGL mesa-dri-drivers glfw glfw-devel && dnf clean all
+
+# Setup Python Virtual Environment
+RUN /usr/bin/python3.13 -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+ENV PIP_NO_CACHE_DIR=1
+
+# Install Heavy ROCm/PyTorch Wheels
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install --index-url https://download.pytorch.org/whl/rocm7.2 torch torchvision torchaudio 
+
+# Clone ComfyUI and Install its explicit requirements (including SQLAlchemy) IN STAGE 1
+WORKDIR /opt
+RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git
+WORKDIR /opt/ComfyUI
+RUN python -m pip install -r requirements.txt && \
+    python -m pip install --prefer-binary \
+    pillow opencv-python-headless imageio imageio-ffmpeg scipy "huggingface_hub[hf_transfer]" pyyaml websocket-client
+
+COPY workflows/*.json /opt/ComfyUI/user/default/workflows/
+
+RUN python -m pip install gguf transformers==4.56.2 moderngl glfw
+
+# ComfyUI plugins
+WORKDIR /opt/ComfyUI/custom_nodes
+RUN git clone --depth=1 https://github.com/cubiq/ComfyUI_essentials /opt/ComfyUI/custom_nodes/ComfyUI_essentials
+RUN git clone --depth=1 https://github.com/city96/ComfyUI-GGUF /opt/ComfyUI/custom_nodes/ComfyUI-GGUF
+
+# Qwen Image Studio
+WORKDIR /opt
+RUN git clone --depth=1 https://github.com/kyuz0/qwen-image-studio /opt/qwen-image-studio && \
+    python -m pip install -r /opt/qwen-image-studio/requirements.txt
+
+# Wan Video Studio
+RUN git clone --depth=1 https://github.com/kyuz0/wan-video-studio /opt/wan-video-studio && \
+    python -m pip install --prefer-binary \
+    opencv-python-headless diffusers tokenizers accelerate \
+    imageio[ffmpeg] easydict ftfy dashscope imageio-ffmpeg decord librosa
+
+# Strip unneeded debug symbols from the compiled .so files to save space
+RUN find /opt/venv -type f -name "*.so" -exec strip -s {} + 2>/dev/null || true
+
+# ==========================================
+# STAGE 2: Optimized Runtime Layer (Slim)
+# ==========================================
+FROM registry.fedoraproject.org/fedora:rawhide
+
+# RETAIN the core toolchain components for runtime JIT execution (Triton)
+RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
+    libdrm-devel python3.13 python3.13-devel git rsync libatomic bash ca-certificates curl \
+    gcc gcc-c++ binutils make ffmpeg-free vim dialog mesa-libGL mesa-libEGL mesa-dri-drivers glfw \
+    && dnf clean all && rm -rf /var/cache/dnf/*
+
+# Copy the fully populated Python environment AND the ComfyUI source code from the Builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/ComfyUI /opt/ComfyUI
+COPY --from=builder /opt/qwen-image-studio /opt/qwen-image-studio
+COPY --from=builder /opt/wan-video-studio /opt/wan-video-studio
+
+# Helper scripts (ComfyUI-only)
+COPY scripts/get_wan22.sh /opt/
+COPY scripts/set_extra_paths.sh /opt/
+COPY scripts/get_qwen_image.sh /opt/
+COPY scripts/get_hunyuan15.sh /opt/
+COPY scripts/get_ltx2.sh /opt/
+COPY scripts/benchmark_workflows.py /opt/
+COPY scripts/collect_perf_logs.py /opt/
+COPY scripts/model_manager.py /opt/
+COPY workflows/API /opt/comfy-workflows
+
+# Make sure the shell scripts are executable!
+RUN chmod +x /opt/*.sh || true
+
+# Re-establish environment variables in the new stage
+ENV PATH=/opt/venv/bin:$PATH
+ENV MIOPEN_FIND_MODE=2
+ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
+ENV HSA_OVERRIDE_GFX_VERSION=11.5.1
+
+# Set execution path and command
+WORKDIR /opt
+
+COPY scripts/01-rocm-envs.sh /etc/profile.d/01-rocm-envs.sh
+
+# Banner script (runs on login)
+COPY scripts/99-toolbox-banner.sh /etc/profile.d/99-toolbox-banner.sh
+RUN chmod 0644 /etc/profile.d/99-toolbox-banner.sh
+
+# Keep /opt/venv/bin first after user dotfiles
+COPY scripts/zz-venv-last.sh /etc/profile.d/zz-venv-last.sh
+RUN chmod 0644 /etc/profile.d/zz-venv-last.sh
+
+# Disable core dumps in interactive shells
+RUN printf 'ulimit -S -c 0\n' > /etc/profile.d/90-nocoredump.sh && chmod 0644 /etc/profile.d/90-nocoredump.sh
+
+CMD ["/bin/bash"]
