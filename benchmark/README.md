@@ -10,9 +10,9 @@ The benchmark tests were automated utilizing a dedicated workflow script. The co
 
 The testing suite evaluates one original base image and two modified forks to compare the impact of ROCm versions and container optimization strategies:
 
-* **RoCm71 (Original)**: The original base image (`docker.io/kyuz0/amd-strix-halo-comfyui:latest`) specifically optimized for Strix Halo architectures. It pulls from ROCm Nightly `v2-staging/gfx1151` (tracking versions ~7.10 - 7.13). The total image size is 💾 15.1 GB.
-* **RoCm72 (Fork)**: A forked image (`localhost/comfyui-rocm:rocm72`) utilizing the stable PyTorch ROCm 7.2 release (`whl/rocm7.2`). The total image size is 💾 35.2 GB.
-* **RoCm72-Slim (Fork)**: A refined, multi-stage build of the ROCm 7.2 fork (`localhost/comfyui-rocm:rocm72-slim`) designed to significantly reduce the storage footprint. The total image size is 💾 18.0 GB.
+* **RoCm71 (Original)**: The original base image (`docker.io/kyuz0/amd-strix-halo-comfyui:latest`) specifically optimized for Strix Halo architectures. It pulls from ROCm Nightly `v2-staging/gfx1151` (tracking versions ~7.10 - 7.13). <br />Image size is 💾 15.1 GB.
+* **RoCm72 (Fork)**: A forked image (`localhost/comfyui-rocm:rocm72`) utilizing the stable PyTorch ROCm 7.2 release (`whl/rocm7.2`).  <br />Image size is 💾 35.2 GB ▶️[Dockerfile.rocm72](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm72)
+* **RoCm72-Slim (Fork)**: A refined, multi-stage build of the ROCm 7.2 fork (`localhost/comfyui-rocm:rocm72-slim`) designed to significantly reduce the storage footprint.  <br />Image size is 💾 18.0 GB ▶️[Dockerfile.rocm72-slim](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm72-slim)
 
 ## Benchmark Results
 
