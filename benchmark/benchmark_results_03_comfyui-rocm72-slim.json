@@ -1,0 +1,112 @@
+[
+  {
+    "workflow": "Flux1-Schnell-4-Steps.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 82.40258622169495,
+    "cold_run_seconds": 82.40258622169495,
+    "warm_run_seconds": 0,
+    "timestamp": 1783742097.1169128,
+    "env": {}
+  },
+  {
+    "workflow": "Hunyuan-Video-1.5_720p_i2v-4-step-lora.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 1024.5037069320679,
+    "cold_run_seconds": 1024.5037069320679,
+    "warm_run_seconds": 0,
+    "timestamp": 1783743127.7526515,
+    "env": {}
+  },
+  {
+    "workflow": "Hunyuan-Video-1.5_720p_t2v-4-step-lora.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 1002.1357429027557,
+    "cold_run_seconds": 1002.1357429027557,
+    "warm_run_seconds": 0,
+    "timestamp": 1783744136.0188265,
+    "env": {}
+  },
+  {
+    "workflow": "LTX2-I2V-BF16.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 1067.4606976509094,
+    "cold_run_seconds": 1067.4606976509094,
+    "warm_run_seconds": 0,
+    "timestamp": 1783745213.8187761,
+    "env": {}
+  },
+  {
+    "workflow": "LTX2-T2V-BF16.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 1016.7893164157867,
+    "cold_run_seconds": 1016.7893164157867,
+    "warm_run_seconds": 0,
+    "timestamp": 1783746239.8862143,
+    "env": {}
+  },
+  {
+    "workflow": "Qwen-Image-2512-BF16-20-Steps.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 431.7440621852875,
+    "cold_run_seconds": 431.7440621852875,
+    "warm_run_seconds": 0,
+    "timestamp": 1783746677.9213357,
+    "env": {}
+  },
+  {
+    "workflow": "Qwen-Image-2512-BF16-4-Step-LoRA.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 113.46668767929077,
+    "cold_run_seconds": 113.46668767929077,
+    "warm_run_seconds": 0,
+    "timestamp": 1783746799.6220365,
+    "env": {}
+  },
+  {
+    "workflow": "Qwen-Image-Edit-2511-BF16-20-Steps.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 683.499990940094,
+    "cold_run_seconds": 683.499990940094,
+    "warm_run_seconds": 0,
+    "timestamp": 1783747489.3518648,
+    "env": {}
+  },
+  {
+    "workflow": "Qwen-Image-Edit-2511-BF16-4-Step-LoRA.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 162.58449339866638,
+    "cold_run_seconds": 162.58449339866638,
+    "warm_run_seconds": 0,
+    "timestamp": 1783747661.2007005,
+    "env": {}
+  },
+  {
+    "workflow": "Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1-FP16.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 1882.4226560592651,
+    "cold_run_seconds": 1882.4226560592651,
+    "warm_run_seconds": 0,
+    "timestamp": 1783749555.9682283,
+    "env": {}
+  },
+  {
+    "workflow": "Wan2.2-T2V-A14B-FP16-4steps-lora-rank64-Seko-V2.json",
+    "config": "default",
+    "status": "success",
+    "duration_seconds": 1743.079564332962,
+    "cold_run_seconds": 1743.079564332962,
+    "warm_run_seconds": 0,
+    "timestamp": 1783751308.2638743,
+    "env": {}
+  }
+]
