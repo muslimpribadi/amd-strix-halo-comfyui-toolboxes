@@ -10,7 +10,7 @@ The benchmark tests were automated utilizing a dedicated workflow script. The co
 
 ## Docker Image Specifications
 
-The testing suite evaluates one original base image and two modified forks to compare the impact of ROCm versions and container optimization strategies:
+The testing suite evaluates one original base image and three modified forks to compare the impact of ROCm versions and container optimization strategies:
 
 | Images | Build Size | Version | PyTorch URL |
 | :--- | :--- | :--- | :--- |
@@ -21,7 +21,7 @@ The testing suite evaluates one original base image and two modified forks to co
 
 > [!NOTE]
 > *I also add pytorch+rocm 7.1 stable release for gfx1151, it's turnout as the smallest build.*
-> 
+> <br />*All the fork version reach 🟢0% CPU load after task.*
 
 
 ## 📊 ComfyUI ROCm Builds Benchmark Comparison
