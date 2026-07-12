@@ -1,3 +1,6 @@
+> [!NOTE]
+> *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.*
+
 # AMD Ryzen AI Max “Strix Halo” (64GB-128GB) — ComfyUI Toolbox
 
 A Fedora **toolbox** image with a full **ROCm environment** (TheRock Nightlies / ROCm 7) for **image & video generation** on the **AMD Ryzen AI Max “Strix Halo”** (gfx1151, 64GB-128GB).
