@@ -1,5 +1,7 @@
 # ComfyUI ROCm Benchmark Comparison
 
+Little background from my [report](https://github.com/kyuz0/amd-strix-halo-comfyui-toolboxes/issues/24), that ComfyUI hogging CPU even when no task in the queue, resolved by using older PyTorch+ROCm 7.11. Why stop there let push with the latest ROCm 72.
+
 This repository contains performance benchmarks for various ComfyUI Docker images utilizing AMD ROCm. Testing was conducted natively on a Geekom A9 Mega mini-PC running Fedora 43 Server, to evaluate workflow generation times across different image builds and ROCm driver versions.
 
 ## Benchmark Methodology
@@ -10,34 +12,42 @@ The benchmark tests were automated utilizing a dedicated workflow script. The co
 
 The testing suite evaluates one original base image and two modified forks to compare the impact of ROCm versions and container optimization strategies:
 
-* **RoCm71 (Original)**: The original base image (`docker.io/kyuz0/amd-strix-halo-comfyui:latest`) specifically optimized for Strix Halo architectures. It pulls from ROCm Nightly `v2-staging/gfx1151` (tracking versions ~7.10 - 7.13). <br />Image size is 💾 15.1 GB.
-* **RoCm72 (Fork)**: A forked image (`localhost/comfyui-rocm:rocm72`) utilizing the stable PyTorch ROCm 7.2 release (`whl/rocm7.2`).  <br />Image size is 💾 35.2 GB ▶️[Dockerfile.rocm72](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm72)
-* **RoCm72-Slim (Fork)**: A refined, multi-stage build of the ROCm 7.2 fork (`localhost/comfyui-rocm:rocm72-slim`) designed to significantly reduce the storage footprint.  <br />Image size is 💾 18.0 GB ▶️[Dockerfile.rocm72-slim](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm72-slim)
+| Images | Build Size | Version | PyTorch URL |
+| :--- | :--- | :--- | :--- |
+| Original kyuz0 <br />[Dockerfile](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile) | 15.1 GB| `PyTorch2.13.0a0 rocm7.14.0a20260529` | [`https://rocm.nightlies.amd.com/v2-staging/gfx1151`](https://rocm.nightlies.amd.com/v2-staging/gfx1151) |
+| Local ROCm 72 <br />[Dockerfile.rocm72](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm72) | 35.2 GB | `PyTorch2.13.0 rocm7.2` | [`https://download.pytorch.org/whl/rocm7.2`](https://download.pytorch.org/whl/rocm7.2) |
+| Local ROCm 72 (multi-stage) <br />[Dockerfile.rocm72-slim](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm72-slim) | 18 GB | `PyTorch2.13.0 rocm7.2` | [`https://download.pytorch.org/whl/rocm7.2`](https://download.pytorch.org/whl/rocm7.2) |
+| Local ROCm 71 (multi-stage) <br />[Dockerfile.rocm71-slim](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm71-slim) | 8 GB | `PyTorch2.11.0 rocm7.13.0` | [`https://repo.amd.com/rocm/whl/gfx1151/`](https://repo.amd.com/rocm/whl/gfx1151/) | 
 
-## Benchmark Results
+> [!NOTE]
+> *I also add pytorch+rocm 7.1 stable release for gfx1151, it's turnout as the smallest build.*
+> 
 
-All durations below represent the total execution time in seconds (`duration_seconds`) for each workflow, rounded to two decimal places.
 
-| Workflow | <a id="ref1">RoCm71</a> <br />`[1]` | <a id="ref1">RoCm72</a> <br />`[2]` | <a id="ref3">RoCm72-Slim</a> <br />`[3]` |
-| --- | --- | --- | --- |
-| Flux1-Schnell-4-Steps | 77.77 | 78.53 | 82.40 |
-| Hunyuan-Video-1.5_720p_i2v-4-step | 976.25 | 1008.85 | 1024.50 |
-| Hunyuan-Video-1.5_720p_t2v-4-step | 978.46 | 987.46 | 1002.14 |
-| LTX2-I2V-BF16 | 2822.08 | 1084.53 | 1067.46 |
-| LTX2-T2V-BF16 | 2280.19 | 1236.49 | 1016.79 |
-| Qwen-Image-2512-BF16-20-Steps | 367.45 | 428.32 | 431.74 |
-| Qwen-Image-2512-BF16-4-Step-LoRA | 651.79 | 119.34 | 113.47 |
-| Qwen-Image-Edit-2511-BF16-20-Steps | 619.61 | 721.22 | 683.50 |
-| Qwen-Image-Edit-2511-BF16-4-Step-LoRA | 1154.68 | 192.51 | 162.58 |
-| Wan2.2-I2V-A14B-4steps-lora | 1899.99 | 1828.69 | 1882.42 |
-| Wan2.2-T2V-A14B-FP16-4steps-lora | 1782.70 | 1713.66 | 1743.08 |
+## 📊 ComfyUI ROCm Builds Benchmark Comparison
 
-## Insights and Observations
+This table compares the performance and size of four different ComfyUI ROCm podman images. The best results for each metric are marked with 🏆.
 
-*   **The LTX2 and LoRA Performance Bottleneck:** <br />The Strix Halo (`RoCm71`) image experiences a massive performance penalty on specific workflows. <br />It requires 2822.08 seconds to process the LTX2-I2V-BF16 workflow[[1]](#ref1), which is over 2.5x slower than the ROCm 7.2 build at 1084.53 seconds[[2]](#ref2). <br />It also suffers a drastic slowdown during Qwen-Image-Edit 4-Step LoRA runs, taking 1154.68 seconds[[1]](#ref1) compared to just 192.51 seconds on the standard ROCm 7.2 build[[2]](#ref2). <br />This points to a likely optimization gap or fallback issue within the nightly driver for specific attention mechanisms or PEFT operations.
-*   **Strong Baseline Model Performance:** <br />When avoiding LoRAs or LTX2 workflows, the Strix Halo (`RoCm71`) nightly build matches or beats the stable ROCm 7.2 builds[[1]](#ref1)[[2]](#ref2). <br />For example, the base Qwen-Image 20-Steps completes faster on Strix Halo  (`RoCm71`) (367.45 seconds)[[1]](#ref1) than on ROCm 7.2 (428.32 seconds)[[2]](#ref2). <br />Flux1-Schnell is also slightly faster on Strix Halo (`RoCm71`) at 77.77 seconds[[1]](#ref1) versus 78.53 seconds on ROCm 7.2[[2]](#ref2).
-*   **The "Slim" Image Efficiency:** <br />The `RoCm72-Slim` image maintains top-tier performance despite drastically reducing the container footprint. <br />It actually outperforms the base `RoCm72` image in several scenarios, including LTX2-T2V where it finishes in 1016.79 seconds[[3]](#ref3) compared to 1236.49 seconds[[2]](#ref2). <br />It also yields faster times for the Qwen-Image-Edit 4-Step LoRA at 162.58 seconds[[3]](#ref3) compared to the full ROCm 7.2 image at 192.51 seconds[[2]](#ref2).
-*   **Hunyuan Video Consistency:** <br />Execution times for Hunyuan-Video are remarkably stable across all three tested environments. <br />The 720p text-to-video workflow times remain incredibly close across the board, scaling from 978.46 seconds on Strix Halo (`RoCm71`)[[1]](#ref1), to 987.46 seconds on ROCm 7.2[[2]](#ref2), and 1002.14 seconds on the Slim image[[3]](#ref3).
+| Metric / Workflow | Original kyuz0<br>*(ROCm 7.14)* | Local ROCm 72<br>*(ROCm 7.2)* | Local ROCm 72 Slim<br>*(ROCm 7.2)* | Local ROCm 71 Slim<br>*(ROCm 7.13)* |
+| :--- | :---: | :---: | :---: | :---: |
+| `Flux1 Schnell 4 Steps` | **77 s** 🏆 | 78 s | 82 s | 82 s |
+| `Hunyuan Video 1.5_720p_i2v 4 step lora` | **16 m 16 s** 🏆 | 16 m 48 s | 17 m 4 s | 18 m 6 s |
+| `Hunyuan Video 1.5_720p_t2v 4 step lora` | **16 m 18 s** 🏆 | 16 m 27 s | 16 m 42 s | 17 m 16 s |
+| `LTX2 I2V BF16` | 47 m 2 s | 18 m 4 s | **17 m 47 s** 🏆 | 19 m 34 s |
+| `LTX2 T2V BF16` | 38 m 0 s | 20 m 36 s | **16 m 56 s** 🏆 | 17 m 31 s |
+| `Qwen Image 2512 BF16 20 Steps` | **6 m 7 s** 🏆 | 7 m 8 s | 7 m 11 s | 6 m 41 s |
+| `Qwen Image 2512 BF16 4 Step LoRA` | 10 m 51 s | 1 m 59 s | **1 m 53 s** 🏆 | 3 m 4 s |
+| `Qwen Image Edit 2511 BF16 20 Steps` | **10 m 19 s** 🏆 | 12 m 1 s | 11 m 23 s | 10 m 38 s |
+| `Qwen Image Edit 2511 BF16 4 Step LoRA` | 19 m 14 s | 3 m 12 s | **2 m 42 s** 🏆 | 3 m 28 s |
+| `Wan2.2 I2V A14B 4steps lora rank64 Seko V1 FP16` | 31 m 39 s | **30 m 28 s** 🏆 | 31 m 22 s | 36 m 30 s |
+| `Wan2.2 T2V A14B FP16 4steps lora rank64 Seko V2` | 29 m 42 s | **28 m 33 s** 🏆 | 29 m 3 s | 35 m 33 s |
+
+### 💡 Interesting Facts & Observations
+
+* **Size vs. Performance Sweet Spot**: The **Local ROCm 72 (Slim)** build effectively halves the image size (from 35.2 GB down to 18 GB) compared to the standard local build, without sacrificing generation speed—in fact, it even takes the crown for fastest LoRA performance. 
+* **Tiny but Mighty**: The **Local ROCm 71 (Slim)** is remarkably small at just **8.18 GB** (an ~75% reduction from the standard build). While slightly slower on some heavy workflows like Wan2.2, it remains highly competitive across the board, making it perfect for storage-constrained setups.
+* **Original Build's LTX2 & LoRA Bottlenecks**: The `Original kyuz0` image severely struggles with specific tasks, taking almost 47 minutes for `LTX2-I2V` and over 19 minutes for `Qwen-Image-Edit (LoRA)`. In contrast, the local builds breeze through these same tasks in roughly a third of the time (e.g., ~17 minutes and ~3 minutes, respectively).
+* **Base Performance Baseline**: Surprisingly, for standard baseline generation without LoRAs (like `Flux1-Schnell` and `Qwen-Image-2512-BF16-20-Steps`), the heavier `Original kyuz0` staging build still performs the fastest, narrowly beating the custom local builds by a few seconds.
 
 ---
 
