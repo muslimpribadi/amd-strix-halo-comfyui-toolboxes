@@ -51,6 +51,7 @@ The repository comes with a collection of ComfyUI workflows pre-validated on thi
 | **Qwen Image** | T2I | Qwen Image 2512 (FP8) & Lightning LoRA (4 steps). |
 | **Qwen Image Edit** | Image Editing | Qwen Image Edit 2511 (FP8) & Lightning LoRA (4/20 steps). |
 | **Wan 2.2** | I2V / T2V | 14B model with 4-step Lightning LoRA. |
+| **Flux1 Schnell** | T2I | 12B model generate high-quality images in only 1 to 4 steps |
 
 ---
 
