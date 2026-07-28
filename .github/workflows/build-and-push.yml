@@ -41,17 +41,19 @@ jobs:
           PACKAGE_NAME=$(basename ${{ github.repository }})
           TARGET_TAG="${{ steps.upstream.outputs.tag }}"
           
-          # Query GHCR to check if this custom formatted tag already exists
-          TAG_EXISTS=$(gh api \
+          # Query GHCR; redirect stderr to /dev/null so 404s don't pollute logs, default to empty array
+          VERSIONS_JSON=$(gh api \
             -H "Accept: application/vnd.github+json" \
-            /users/${{ github.repository_owner }}/packages/container/$PACKAGE_NAME/versions \
-            --jq ".[] | select(.metadata.container.tags[]? == \"$TARGET_TAG\") | .id" || echo "")
-          
-          if [ -n "$TAG_EXISTS" ]; then
+            "/users/${{ github.repository_owner }}/packages/container/${PACKAGE_NAME}/versions" 2>/dev/null || echo "[]")
+
+          # Filter JSON for matching tag ID
+          TAG_EXISTS=$(echo "$VERSIONS_JSON" | jq -r ".[] | select(.metadata.container.tags[]? == \"$TARGET_TAG\") | .id")
+
+          if [ -n "$TAG_EXISTS" ] && [ "$TAG_EXISTS" != "null" ]; then
             echo "Tag $TARGET_TAG already exists in GHCR. Stopping."
             echo "build_needed=false" >> $GITHUB_OUTPUT
           else
-            echo "New version detected ($TARGET_TAG). Proceeding with build."
+            echo "New version detected or package missing ($TARGET_TAG). Proceeding with build."
             echo "build_needed=true" >> $GITHUB_OUTPUT
           fi
 
