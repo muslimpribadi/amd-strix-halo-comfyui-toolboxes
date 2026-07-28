@@ -1,0 +1,82 @@
+name: Build and Publish
+
+on:
+  schedule:
+    - cron: '30 0 * * *'
+      timezone: 'Asia/Jakarta'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+      - name: Get upstream ComfyUI version and format tag
+        id: upstream
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/Comfy-Org/ComfyUI/releases/latest | jq -r .tag_name)
+          
+          # Concatenate the prefix and the upstream version (e.g., comfyui-v0.27.0)
+          FORMATTED_TAG="comfyui-$LATEST"
+          
+          echo "tag=$FORMATTED_TAG" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists in GHCR
+        id: check_ghcr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PACKAGE_NAME=$(basename ${{ github.repository }})
+          TARGET_TAG="${{ steps.upstream.outputs.tag }}"
+          
+          # Query GHCR to check if this custom formatted tag already exists
+          TAG_EXISTS=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            /users/${{ github.repository_owner }}/packages/container/$PACKAGE_NAME/versions \
+            --jq ".[] | select(.metadata.container.tags[]? == \"$TARGET_TAG\") | .id" || echo "")
+          
+          if [ -n "$TAG_EXISTS" ]; then
+            echo "Tag $TARGET_TAG already exists in GHCR. Stopping."
+            echo "build_needed=false" >> $GITHUB_OUTPUT
+          else
+            echo "New version detected ($TARGET_TAG). Proceeding with build."
+            echo "build_needed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout repository
+        if: steps.check_ghcr.outputs.build_needed == 'true'
+        uses: actions/checkout@v5
+
+      - name: Log in to GHCR
+        if: steps.check_ghcr.outputs.build_needed == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata and Dual-Tag
+        if: steps.check_ghcr.outputs.build_needed == 'true'
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.upstream.outputs.tag }}
+
+      - name: Build and push Docker image
+        if: steps.check_ghcr.outputs.build_needed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.rocm71-slim
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
