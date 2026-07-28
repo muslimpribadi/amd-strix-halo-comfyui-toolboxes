@@ -18,7 +18,7 @@ RUN python -m pip install --upgrade pip setuptools wheel && \
 
 # Clone ComfyUI and Install its explicit requirements (including SQLAlchemy) IN STAGE 1
 WORKDIR /opt
-RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git
+RUN git clone --depth=1 https://github.com/Comfy-Org/ComfyUI.git
 WORKDIR /opt/ComfyUI
 RUN python -m pip install -r requirements.txt && \
     python -m pip install --prefer-binary \
