@@ -28,8 +28,8 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/Comfy-Org/ComfyUI/releases/latest | jq -r .tag_name)
           
-          # Concatenate the prefix and the upstream version (e.g., comfyui-v0.27.0-rocm71slim)
-          FORMATTED_TAG="comfyui-$LATEST-rocm71slim"
+          # Concatenate the prefix and the upstream version
+          FORMATTED_TAG="comfyui-$LATEST-rocm7.14"
           
           echo "tag=$FORMATTED_TAG" >> $GITHUB_OUTPUT
 
@@ -84,6 +84,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.rocm71-slim
+          file: ./Dockerfile.rocm7.14
           push: true
           tags: ${{ steps.meta.outputs.tags }}
