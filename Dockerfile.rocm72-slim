@@ -1,7 +1,7 @@
 # ==========================================
 # STAGE 1: Build & Package Layer
 # ==========================================
-FROM quay.io/fedora/fedora:43 AS builder
+FROM quay.io/fedora/fedora:rawhide AS builder
 
 RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
     libdrm-devel python3.13 python3.13-devel git rsync libatomic \
@@ -70,6 +70,8 @@ FROM quay.io/fedora/fedora-minimal:43
 # OCI Metadata Labels
 LABEL org.opencontainers.image.title="amd-strix-halo-comfyui-toolboxes" \
       org.opencontainers.image.description="ComfyUI container, optimized for AMD Strix Halo hardware (ROCm72 gfx1151) hardware." \
+	  org.opencontainers.image.source="https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes" \
+      org.opencontainers.image.licenses="MIT"
 
 # RETAIN the core toolchain components for runtime JIT execution (Triton)
 RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
