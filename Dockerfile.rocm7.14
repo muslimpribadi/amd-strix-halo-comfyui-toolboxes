@@ -1,0 +1,110 @@
+# ==========================================
+# STAGE 1: Build & Package Layer
+# ==========================================
+FROM registry.fedoraproject.org/fedora:44 AS builder
+
+RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
+    python3.13 python3.13-devel git rsync \
+	make gcc gcc-c++ binutils libdrm-devel libatomic \
+    mesa-libGL mesa-libEGL mesa-dri-drivers glfw glfw-devel \
+	&& dnf clean all && rm -rf /var/cache/dnf/*
+
+# Setup Python Virtual Environment
+RUN /usr/bin/python3.13 -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+ENV PIP_NO_CACHE_DIR=1
+
+# Install ROCm/PyTorch Wheels for gfx1151
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install --index-url https://repo.amd.com/rocm/whl-multi-arch/ \
+    "torch[device-gfx1151]==2.12.0+rocm7.14.0" \
+    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0" \
+    "torchaudio==2.11.0+rocm7.14.0" 
+
+# Clone ComfyUI and Install Core Dependencies
+WORKDIR /opt
+RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI
+
+WORKDIR /opt/ComfyUI
+RUN python -m pip install -r requirements.txt && \
+    python -m pip install --prefer-binary \
+    pillow opencv-python-headless imageio imageio-ffmpeg scipy "huggingface_hub[hf_transfer]" pyyaml websocket-client \
+    gguf transformers==4.56.2 moderngl glfw
+
+# Install Custom Nodes
+RUN git clone --depth=1 https://github.com/cubiq/ComfyUI_essentials /opt/ComfyUI/custom_nodes/ComfyUI_essentials && \
+    git clone --depth=1 https://github.com/city96/ComfyUI-GGUF /opt/ComfyUI/custom_nodes/ComfyUI-GGUF
+
+# Clone External Studios
+RUN git clone --depth=1 https://github.com/kyuz0/qwen-image-studio /opt/qwen-image-studio && \
+    python -m pip install -r /opt/qwen-image-studio/requirements.txt
+
+RUN git clone --depth=1 https://github.com/kyuz0/wan-video-studio /opt/wan-video-studio && \
+    python -m pip install --prefer-binary \
+    opencv-python-headless diffusers tokenizers accelerate \
+    imageio[ffmpeg] easydict ftfy dashscope imageio-ffmpeg decord librosa
+
+# Purge Venv Cache & Bytecode to Minimize Layer Size
+RUN python -m pip cache purge && \
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+# ==========================================
+# STAGE 2: Optimized Runtime Layer (Slim)
+# ==========================================
+FROM registry.fedoraproject.org/fedora-minimal:44
+
+# OCI Metadata Labels
+LABEL org.opencontainers.image.title="amd-strix-halo-comfyui-toolboxes" \
+      org.opencontainers.image.description="ComfyUI container, optimized for AMD Strix Halo hardware (ROCm-7.14 gfx1151) hardware." \
+	  org.opencontainers.image.source="https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes" \
+      org.opencontainers.image.licenses="MIT"
+
+# Install Runtime Toolchain & Graphics Drivers
+RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
+    python3.13 libatomic bash ca-certificates curl gcc make git \
+    ffmpeg-free mesa-libGL mesa-libEGL mesa-dri-drivers glfw \
+    && dnf clean all && rm -rf /var/cache/dnf/* /tmp/* /var/tmp/*
+
+# Copy Application Code & Virtual Environment
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/ComfyUI /opt/ComfyUI
+COPY --from=builder /opt/qwen-image-studio /opt/qwen-image-studio
+COPY --from=builder /opt/wan-video-studio /opt/wan-video-studio
+
+# Copy Scripts and Workflows in Consolidated Layers
+COPY scripts/ /opt/
+COPY workflows/ /opt/ComfyUI/user/default/workflows/
+COPY workflows/API /opt/comfy-workflows
+
+# System Profile Configurations
+COPY scripts/01-rocm-envs.sh /etc/profile.d/01-rocm-envs.sh
+COPY scripts/99-toolbox-banner.sh /etc/profile.d/99-toolbox-banner.sh
+COPY scripts/zz-venv-last.sh /etc/profile.d/zz-venv-last.sh
+
+RUN chmod +x /opt/scripts/*.sh 2>/dev/null || true && \
+    chmod 0644 /etc/profile.d/*.sh 2>/dev/null || true && \
+    printf 'ulimit -S -c 0\n' > /etc/profile.d/90-nocoredump.sh && chmod 0644 /etc/profile.d/90-nocoredump.sh
+
+# Environment Variables & Executable Path
+ENV PATH=/opt/venv/bin:$PATH
+
+# ROCm 7.14 & gfx1151 Hardware Optimizations (Strix Halo UMA)
+ENV HSA_ENABLE_SDMA=0
+ENV HSA_XNACK=1
+ENV HSA_FORCE_FINE_GRAIN_PCIE=1
+ENV GPU_MAX_HEAP_SIZE=100
+ENV GPU_MAX_ALLOC_PERCENT=100
+ENV GPU_SINGLE_ALLOC_PERCENT=100
+ENV GPU_FORCE_64BIT_PTR=1
+ENV HIP_VISIBLE_DEVICES=0
+ENV ROCR_VISIBLE_DEVICES=0
+
+# PyTorch & MIOpen Tuning
+ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
+ENV MIOPEN_FIND_MODE=2
+ENV MIOPEN_USER_DB_PATH=/tmp/miopen
+ENV PYTORCH_ROCM_ALLOC_CONF="garbage_collection_threshold:0.8,max_split_size_mb:512"
+
+WORKDIR /opt
+
+CMD ["/bin/bash"]
