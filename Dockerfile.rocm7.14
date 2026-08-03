@@ -14,11 +14,11 @@ RUN /usr/bin/python3.13 -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
 ENV PIP_NO_CACHE_DIR=1
 
-# Install ROCm/PyTorch Wheels for gfx1151
+# Install ROCm/PyTorch Wheels for gfx1151 (pin PyTorch 2.11 fix 100% cpu on idle)
 RUN python -m pip install --upgrade pip setuptools wheel && \
     python -m pip install --index-url https://repo.amd.com/rocm/whl-multi-arch/ \
-    "torch[device-gfx1151]==2.12.0+rocm7.14.0" \
-    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0" \
+    "torch[device-gfx1151]==2.11.0+rocm7.14.0" \
+    "torchvision[device-gfx1151]==0.26.0+rocm7.14.0" \
     "torchaudio==2.11.0+rocm7.14.0" 
 
 # Clone ComfyUI and Install Core Dependencies
@@ -100,6 +100,7 @@ ENV HIP_VISIBLE_DEVICES=0
 ENV ROCR_VISIBLE_DEVICES=0
 
 # PyTorch & MIOpen Tuning
+ENV TORCH_BLAS_PREFER_HIPBLASLT=1
 ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
 ENV MIOPEN_FIND_MODE=2
 ENV MIOPEN_USER_DB_PATH=/tmp/miopen
