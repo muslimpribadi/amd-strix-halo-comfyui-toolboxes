@@ -1,9 +1,20 @@
 > [!NOTE]
-> - *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.*
-> - *GHCR package using the latest ROCm 7.14 with pytorch 2.11 [`Dockerfile.rocm7.14`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.14)* [![][github-ghcr-shield]][github-ghcr-link]
+> [![][github-ghcr-shield]][github-ghcr-link] [![][github-ghcr-tag-shield]][github-ghcr-link] [![][github-ghcr-size-shield]][github-ghcr-link]
+> 
+> Production ready GHCR images
+> 
+> | GHCR Packages | Dockerfile |
+> | --- | --- |
+> | *Latest ComfyUI + ROCm 7.14 with `pytorch 2.11` (stable)* | [`Dockerfile.rocm7.14`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.14) |
+>
+> *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.*
 
 [github-ghcr-shield]: https://img.shields.io/badge/GHCR-Ready-blue?logo=docker
 [github-ghcr-link]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/pkgs/container/amd-strix-halo-comfyui-toolboxes
+[github-ghcr-tag-shield]: https://ghcr-badge.egpl.dev/muslimpribadi/amd-strix-halo-comfyui-toolboxes/latest_tag?trim=major&label=latest
+[github-ghcr-size-shield]: https://img.shields.io/badge/GHCR%20Size-8GB-blue
+
+---
 
 # AMD Ryzen AI Max “Strix Halo” (64GB-128GB) — ComfyUI Toolbox
 
