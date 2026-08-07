@@ -14,7 +14,7 @@ jobs:
   check-and-build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       
     steps:
@@ -87,3 +87,27 @@ jobs:
           file: ./Dockerfile.rocm7.14
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Update README Badge
+        if: steps.check_ghcr.outputs.build_needed == 'true'
+        run: |
+          # Retrieve layer size sum from image manifest in GHCR
+          SIZE_BYTES=$(docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest | jq '[.layers[].size] | add')
+          SIZE_GB=$(echo "$SIZE_BYTES" | awk '{print int(($1 / 1024 / 1024 / 1024) + 0.5)"GB"}')
+
+          echo "Calculated GHCR image size: $SIZE_GB"
+
+          # Replace the github-ghcr-size-shield reference link in README.md
+          sed -i "s|\[github-ghcr-size-shield\]: .*|\[github-ghcr-size-shield\]: https://img.shields.io/badge/GHCR%20Size-${SIZE_GB}-blue|g" README.md
+
+          # Commit updated README.md back to repository
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+
+          if ! git diff --staged --quiet; then
+            git commit -m "docs: update GHCR image size badge to ${SIZE_GB}"
+            git push
+          else
+            echo "No badge changes needed in README.md"
+          fi
