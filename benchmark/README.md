@@ -1,16 +1,20 @@
 # ComfyUI ROCm Benchmark Comparison
 
-Little background from my [report](https://github.com/kyuz0/amd-strix-halo-comfyui-toolboxes/issues/24), that ComfyUI hogging CPU even when no task in the queue, resolved by using older PyTorch+ROCm 7.11. Why stop there let push with the latest ROCm. 
+Little background from my [issue report](https://github.com/kyuz0/amd-strix-halo-comfyui-toolboxes/issues/24), that ComfyUI hogging CPU even when no task in the queue, resolved by using older PyTorch+ROCm 7.11. Why stop there let push with the latest ROCm. 
 
 This repository contains performance benchmarks for various ComfyUI Docker images utilizing AMD ROCm. Testing was conducted natively on a Geekom A9 Mega mini-PC running Fedora 43 Server, to evaluate workflow generation times across different image builds and ROCm driver versions.
 
 ## Benchmark Methodology
 
+This test run on shared resources machine and I tend to add other services overtime, it's not dedicated testing machine with consistent neighbor services count, so keep that in mind when seeing the results. For example the slight slower duration at the later test might come from additional buzzy neighbor service like WAHA that not exist in the first test.
+
+> Benchmark become an efficient option to verify the new version is compatible, rather than testing by hand all existing workflow. It's scaling with the workflow collections increase.
+
 The benchmark tests were automated utilizing a dedicated workflow script. The complete execution logic, environment variables, and testing parameters are available in the [`benchmark_workflows.py`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/ec81a21f890f1a1044f5f49b8e9507a93012b1c4/scripts/benchmark_workflows.py).
 
 ## Docker Image Specifications
 
-The testing suite evaluates one original base image and three modified forks to compare the impact of ROCm versions and container optimization strategies:
+The testing suite evaluates one original base image and several modified forks to compare the impact of ROCm versions and container optimization strategies:
 
 | Images | Build Size | Version | PyTorch URL |
 | :--- | :--- | :--- | :--- |
@@ -19,8 +23,8 @@ The testing suite evaluates one original base image and three modified forks to 
 | Local ROCm 7.1 <br />[Dockerfile.rocm7.1](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.1) | 8 GB | `PyTorch2.11 rocm7.1.3.` | [`https://repo.amd.com/rocm/whl/gfx1151/`](https://repo.amd.com/rocm/whl/gfx1151/) | 
 | Local ROCm 7.14 <br />[Dockerfile.rocm7.14](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.14) | 8.7 GB | `PyTorch2.11 rocm7.14` | [`https://repo.amd.com/rocm/whl-multi-arch/`](https://rocm.docs.amd.com/projects/ai-ecosystem/en/latest/frameworks/pytorch/install.html?fam=ryzen&os=linux&pytorch-ver=2.11.0&i=pip&w=compute&gpu=max-395&gfx=gfx1151) |
 
-> [!NOTE]
-> - *ROCm 7.14.0 with PyTorch 2.12 reach 🔴100% CPU load after task! downgrade to ✔️PyTorch 2.11 solved this issue.*
+> [!NOTE] 
+> - *ROCm 7.14.0 with PyTorch 2.12 still hogging 🔴100% CPU load after task finished! downgrade to ✔️PyTorch 2.11 solved this issue.*
 > - *ROCm 7.1.3 turnout as the smallest build.*
 > - *All the fork version reach 🟢0% CPU load after task.*
 
