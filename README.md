@@ -1,9 +1,18 @@
 > [!NOTE]
+> [![][github-action-shield]][github-action-link] [![][github-upstream-shield]][github-upstream-link]
+> 
 > [![][github-ghcr-shield]][github-ghcr-link] [![][github-ghcr-tag-shield]][github-ghcr-link] [![][github-ghcr-size-shield]][github-ghcr-link]
->
+> <br>
 > [![][github-ghcr-downloads-shield]][github-ghcr-link]
 > 
-> Production ready GHCR images
+> - I use this repo for my `podman auto-update` pipeline gfx1151 stack workstation, feel free to use without any guarantee.
+> - **Automated CI/CD**: Syncs with the upstream ComfyUI project and automatically publishes to GHCR upon new releases
+> 
+> Production ready GHCR images, use `latest` tag for the latest version:
+>
+> ```shell
+> docker pull ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest
+> ```
 > 
 > | GHCR Packages | Dockerfile |
 > | --- | --- |
@@ -11,6 +20,10 @@
 >
 > *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.<br>For other version, use the dockerfile available and build locally.*
 
+[github-action-shield]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/actions/workflows/build-and-push.yml/badge.svg
+[github-action-link]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/actions
+[github-upstream-shield]: https://img.shields.io/badge/Upstream-ComfyUI-yellow?logo=github
+[github-upstream-link]: https://github.com/Comfy-Org/ComfyUI
 [github-ghcr-shield]: https://img.shields.io/badge/GHCR-Ready-blue?logo=docker
 [github-ghcr-link]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/pkgs/container/amd-strix-halo-comfyui-toolboxes
 [github-ghcr-tag-shield]: https://ghcr-badge.egpl.dev/muslimpribadi/amd-strix-halo-comfyui-toolboxes/latest_tag?trim=major&label=latest
@@ -18,6 +31,9 @@
 [github-ghcr-downloads-shield]: https://ghcr-badge.elias.eu.org/shield/muslimpribadi/amd-strix-halo-comfyui-toolboxes
 
 ---
+
+<details>
+  <summary> <h3>Original README from kyuz0/amd-strix-halo-comfyui-toolboxes</h3> </summary>
 
 # AMD Ryzen AI Max “Strix Halo” (64GB-128GB) — ComfyUI Toolbox
 
@@ -245,3 +261,5 @@ Source: [Reddit Comment](https://www.reddit.com/r/LocalLLaMA/comments/1m9wcdc/co
 sudo grub2-mkconfig -o /boot/grub2/grub.cfg
 sudo reboot
 ```
+
+</details>
