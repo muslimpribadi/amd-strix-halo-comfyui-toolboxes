@@ -9,7 +9,7 @@
 > | --- | --- |
 > | *Latest ComfyUI + ROCm 7.14 with `pytorch 2.11` (stable)* | [`Dockerfile.rocm7.14`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.14) |
 >
-> *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.*
+> *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.<br>For other version, use the dockerfile available and build locally.*
 
 [github-ghcr-shield]: https://img.shields.io/badge/GHCR-Ready-blue?logo=docker
 [github-ghcr-link]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/pkgs/container/amd-strix-halo-comfyui-toolboxes
