@@ -27,7 +27,7 @@
 [github-ghcr-shield]: https://img.shields.io/badge/GHCR-Ready-blue?logo=docker
 [github-ghcr-link]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/pkgs/container/amd-strix-halo-comfyui-toolboxes
 [github-ghcr-tag-shield]: https://ghcr-badge.egpl.dev/muslimpribadi/amd-strix-halo-comfyui-toolboxes/latest_tag?trim=major&label=latest
-[github-ghcr-size-shield]: https://img.shields.io/badge/GHCR%20Size-8GB-blue
+[github-ghcr-size-shield]: https://img.shields.io/badge/GHCR%20Size-3GB-blue
 [github-ghcr-downloads-shield]: https://ghcr-badge.elias.eu.org/shield/muslimpribadi/amd-strix-halo-comfyui-toolboxes
 
 ---
