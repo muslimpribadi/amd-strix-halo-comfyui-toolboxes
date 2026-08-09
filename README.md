@@ -6,7 +6,8 @@
 > [![][github-ghcr-downloads-shield]][github-ghcr-link]
 > 
 > - I use this repo for my `podman auto-update` pipeline gfx1151 stack workstation, feel free to use without any guarantee.
-> - **Automated CI/CD**: Syncs with the upstream ComfyUI project and automatically publishes to GHCR upon new releases
+> - **Automated CI/CD**: Syncs with the upstream ComfyUI project and automatically publishes to GHCR upon new releases.
+> - Include **Flux1 Schnell 4 steps** additional workflow.
 > 
 > Production ready GHCR images, use `latest` tag for the latest version:
 >
