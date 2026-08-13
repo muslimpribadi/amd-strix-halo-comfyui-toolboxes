@@ -9,7 +9,10 @@ from pathlib import Path
 # --- Configuration ---
 # Hardcoded paths for Docker environment
 SCRIPT_DIR = Path("/opt")
-WORKFLOW_DIR = Path("/opt/comfy-workflows")
+WORKFLOW_DIRS = (
+    Path("/opt/comfy-workflows"),
+    Path("/opt/ComfyUI/user/default/workflows"),
+)
 
 # --- Model Families Configuration ---
 # Group workflows by "Functionality". 
@@ -156,6 +159,65 @@ MODEL_FAMILIES = [
             }
         ]
     },
+
+    # --- MiniMax-H3 ---
+    {
+        "name": "MiniMax-H3 T2V",
+        "keywords": ["minimax-h3", "t2v"],
+        "exclude_keywords": ["turbo"],
+        "script": "get_minimax_h3.sh",
+        "variants": [
+            {
+                "name": "T2V model + shared encoder and VAEs",
+                "args": ["common", "fl2va"]
+            }
+        ]
+    },
+    {
+        "name": "MiniMax-H3 I2V",
+        "keywords": ["minimax-h3", "i2v"],
+        "exclude_keywords": ["turbo"],
+        "script": "get_minimax_h3.sh",
+        "variants": [
+            {
+                "name": "I2V model + shared encoder and VAEs",
+                "args": ["common", "fl2va"]
+            }
+        ]
+    },
+    {
+        "name": "MiniMax-H3 R2V",
+        "keywords": ["minimax-h3", "r2v"],
+        "script": "get_minimax_h3.sh",
+        "variants": [
+            {
+                "name": "R2V model + shared encoder and VAEs",
+                "args": ["common", "ref2va"]
+            }
+        ]
+    },
+    {
+        "name": "MiniMax-H3 Turbo T2V",
+        "keywords": ["minimax-h3", "turbo", "t2v"],
+        "script": "get_minimax_h3.sh",
+        "variants": [
+            {
+                "name": "Turbo LoRA + T2V model, encoder and VAEs",
+                "args": ["common", "fl2va", "turbo"]
+            }
+        ]
+    },
+    {
+        "name": "MiniMax-H3 Turbo I2V",
+        "keywords": ["minimax-h3", "turbo", "i2v"],
+        "script": "get_minimax_h3.sh",
+        "variants": [
+            {
+                "name": "Turbo LoRA + I2V model, encoder and VAEs",
+                "args": ["common", "fl2va", "turbo"]
+            }
+        ]
+    },
 ]
 
 def check_dependencies():
@@ -180,14 +242,20 @@ def find_available_families():
     Scans workflow directory and identifies which Model Families are relevant 
     (i.e., we have workflows for them).
     """
-    if not WORKFLOW_DIR.exists():
-        run_dialog(["--msgbox", f"Error: Workflow directory not found at:\n{WORKFLOW_DIR}", "12", "60"])
+    workflow_dirs = [directory for directory in WORKFLOW_DIRS if directory.exists()]
+    if not workflow_dirs:
+        paths = "\n".join(str(directory) for directory in WORKFLOW_DIRS)
+        run_dialog(["--msgbox", f"Error: Workflow directories not found:\n{paths}", "12", "60"])
         sys.exit(1)
 
     available_families = []
     
     # Get all json filenames once
-    workflow_files = [f.name for f in WORKFLOW_DIR.glob("*.json")]
+    workflow_files = [
+        workflow.name
+        for directory in workflow_dirs
+        for workflow in directory.glob("*.json")
+    ]
     
     for family in MODEL_FAMILIES:
         # Check if ANY workflow matches this family's criteria

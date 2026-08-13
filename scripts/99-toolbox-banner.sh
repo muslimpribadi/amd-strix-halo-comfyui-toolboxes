@@ -83,6 +83,7 @@ printf 'Repo   : https://github.com/kyuz0/amd-strix-halo-comfyui-toolboxes\n'
 printf 'Image  : docker.io/kyuz0/amd-strix-halo-comfyui:latest\n\n'
 printf 'Included:\n'
 printf '  - %-16s → %s\n' "ComfyUI"            "start_comfy_ui (http://localhost:8000)"
+printf '  - %-16s → %s\n' "Model Manager"      "model_manager"
 echo
 printf 'SSH tip: ssh -L 8000:localhost:8000 user@host\n\n'
 
