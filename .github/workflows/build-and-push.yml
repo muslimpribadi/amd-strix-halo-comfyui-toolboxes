@@ -81,7 +81,7 @@ jobs:
 
       - name: Build and push Docker image
         if: steps.check_ghcr.outputs.build_needed == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile.rocm7.14
