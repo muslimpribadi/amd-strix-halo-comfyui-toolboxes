@@ -41,7 +41,8 @@ podman run --rm -it \
   ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest \
   /bin/bash -c ". /opt/set_extra_paths.sh && python /opt/model_manager.py"
 ```
-The models will be downloaded to your `/root/comfy-models/`
+
+Mount `/mnt/comfyui/root/` from your host so you don't have to download again on every container restart. The models download folder on your container in `/root/comfy-models/`.
 
 ## 2. Run the ComfyUI server
 
