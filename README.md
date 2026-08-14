@@ -54,7 +54,7 @@ podman run -d \
   --shm-size 16gb \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
-  -v /mnt/ai_data/comfyui-rocm/root:/root/:Z,U \
+  -v /mnt/comfyui/root:/root/:Z,U \
   -w /opt/ComfyUI \
   ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest \
   /bin/bash -c ". /opt/set_extra_paths.sh && exec python main.py --listen 0.0.0.0 --highvram --disable-smart-memory --disable-mmap --bf16-vae --cache-none --enable-manager"
