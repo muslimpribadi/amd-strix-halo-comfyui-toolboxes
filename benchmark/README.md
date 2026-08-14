@@ -9,7 +9,7 @@ This repository contains performance benchmarks for various ComfyUI Docker image
 The benchmark tests were automated utilizing a dedicated workflow script. The complete execution logic, environment variables, and testing parameters are available in the [`benchmark_workflows.py`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/ec81a21f890f1a1044f5f49b8e9507a93012b1c4/scripts/benchmark_workflows.py).
 
 > [!NOTE]
-> This test run on shared resources machine and I tend to add other services overtime, it's not dedicated testing machine with consistent neighbor services count, so keep that in mind when seeing the results. For example the slight slower duration at the later test might come from additional buzzy neighbor service like WAHA that not exist in the first test.
+> This test run on shared resources machine and I tend to add other services overtime, it's not dedicated testing machine with consistent neighbor services count, so keep that in mind when seeing the results. For example the slight slower duration at the later test might come from additional busy neighbor service like WAHA that not exist in the first test.
 >
 > *Rather than testing new ComfyUI + ROCm new compatibility by hand against all existing workflow, benchmark become an efficient option to verify functionality from new version release. It's scaling with the workflow collections increase.*
 
