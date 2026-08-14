@@ -1,25 +1,66 @@
-> [!NOTE]
-> [![][github-action-shield]][github-action-link] [![][github-upstream-shield]][github-upstream-link]
-> 
-> [![][github-ghcr-shield]][github-ghcr-link] [![][github-ghcr-tag-shield]][github-ghcr-link] [![][github-ghcr-size-shield]][github-ghcr-link]
-> <br>
-> [![][github-ghcr-downloads-shield]][github-ghcr-link]
-> 
+<div align="center">
+
+  # ComfyUI AMD Strix Halo
+  [![][github-action-shield]][github-action-link] [![][github-upstream-shield]][github-upstream-link]
+
+  [![][github-ghcr-shield]][github-ghcr-link] [![][github-ghcr-tag-shield]][github-ghcr-link] [![][github-ghcr-size-shield]][github-ghcr-link]
+  <br>
+  [![][github-ghcr-downloads-shield]][github-ghcr-link]
+  
+</div>
+
+> [!NOTE] 
 > - I use this repo for my `podman auto-update` pipeline gfx1151 stack workstation, feel free to use without any guarantee.
 > - **Automated CI/CD**: Syncs with the upstream ComfyUI project and automatically publishes to GHCR upon new releases.
+> - **Multi-build**: for leaner image.
 > - Include **Flux1 Schnell 4 steps** additional workflow.
-> 
-> Production ready GHCR images, use `latest` tag for the latest version:
->
-> ```shell
-> docker pull ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest
-> ```
-> 
-> | GHCR Packages | Dockerfile |
-> | --- | --- |
-> | *Latest ComfyUI + ROCm 7.14 with `pytorch 2.11` (stable)* | [`Dockerfile.rocm7.14`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.14) |
->
-> *See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.<br>For other version, use the dockerfile available and build locally.*
+
+Production ready GHCR images, use `latest` tag for the updated version, pull the image by `docker` or `podman`:
+
+```shell
+podman pull ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest
+```
+
+| GHCR Packages | Dockerfile |
+| --- | --- |
+| *Latest ComfyUI + ROCm 7.14 with `pytorch 2.11` (0% CPU after task)* | [`Dockerfile.rocm7.14`](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/blob/main/Dockerfile.rocm7.14) |
+
+*See [benchmark](https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/tree/main/benchmark) for results from different PyTorch+RoCm images build.<br>For other version, use the dockerfile available and build locally.*
+
+## 1. Download the Models
+
+```shell
+podman run --rm -it \
+  --name comfyui-model-downloader \
+  --device /dev/kfd --device /dev/dri \
+  --group-add video --group-add render \
+  --security-opt label=disable \
+  --security-opt seccomp=unconfined \
+  -v /mnt/comfyui/root:/root/:Z,U \
+  -w /opt \
+  ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest \
+  /bin/bash -c ". /opt/set_extra_paths.sh && python /opt/model_manager.py"
+```
+The models will be downloaded to your `/root/comfy-models/`
+
+## 2. Run the ComfyUI server
+
+```shell
+podman run -d \
+  --name comfyui-rocm \
+  -p 127.0.0.1:8188:8188 \
+  --device /dev/kfd --device /dev/dri \
+  --group-add video --group-add render \
+  --shm-size 16gb \
+  --security-opt label=disable \
+  --security-opt seccomp=unconfined \
+  -v /mnt/ai_data/comfyui-rocm/root:/root/:Z,U \
+  -w /opt/ComfyUI \
+  ghcr.io/muslimpribadi/amd-strix-halo-comfyui-toolboxes:latest \
+  /bin/bash -c ". /opt/set_extra_paths.sh && exec python main.py --listen 0.0.0.0 --highvram --disable-smart-memory --disable-mmap --bf16-vae --cache-none --enable-manager"
+```
+
+Open `http://127.0.0.1:8188` in your browser to start using ComfyUI.
 
 [github-action-shield]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/actions/workflows/build-and-push.yml/badge.svg
 [github-action-link]: https://github.com/muslimpribadi/amd-strix-halo-comfyui-toolboxes/actions
