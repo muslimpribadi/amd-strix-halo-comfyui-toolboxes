@@ -5,9 +5,9 @@ FROM registry.fedoraproject.org/fedora:44 AS builder
 
 RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
     python3.13 python3.13-devel git rsync \
-	make gcc gcc-c++ binutils libdrm-devel libatomic \
-    mesa-libGL mesa-libEGL mesa-dri-drivers glfw glfw-devel \
-	&& dnf clean all && rm -rf /var/cache/dnf/*
+    make gcc gcc-c++ binutils libdrm-devel libatomic \
+    mesa-libGL mesa-libEGL mesa-dri-drivers \
+    && dnf clean all && rm -rf /var/cache/dnf/*
 
 # Setup Python Virtual Environment
 RUN /usr/bin/python3.13 -m venv /opt/venv
@@ -23,26 +23,20 @@ RUN python -m pip install --upgrade pip setuptools wheel && \
 
 # Clone ComfyUI and Install Core Dependencies
 WORKDIR /opt
-RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI
+
+RUN git clone --depth=1 https://github.com/Comfy-Org/ComfyUI.git /opt/ComfyUI
 
 WORKDIR /opt/ComfyUI
 RUN python -m pip install -r requirements.txt && \
+    python -m pip install -r manager_requirements.txt && \
     python -m pip install --prefer-binary \
     pillow opencv-python-headless imageio imageio-ffmpeg scipy "huggingface_hub[hf_transfer]" pyyaml websocket-client \
     gguf transformers==4.56.2 moderngl glfw
 
 # Install Custom Nodes
 RUN git clone --depth=1 https://github.com/cubiq/ComfyUI_essentials /opt/ComfyUI/custom_nodes/ComfyUI_essentials && \
-    git clone --depth=1 https://github.com/city96/ComfyUI-GGUF /opt/ComfyUI/custom_nodes/ComfyUI-GGUF
-
-# Clone External Studios
-RUN git clone --depth=1 https://github.com/kyuz0/qwen-image-studio /opt/qwen-image-studio && \
-    python -m pip install -r /opt/qwen-image-studio/requirements.txt
-
-RUN git clone --depth=1 https://github.com/kyuz0/wan-video-studio /opt/wan-video-studio && \
-    python -m pip install --prefer-binary \
-    opencv-python-headless diffusers tokenizers accelerate \
-    imageio[ffmpeg] easydict ftfy dashscope imageio-ffmpeg decord librosa
+    git clone --depth=1 https://github.com/city96/ComfyUI-GGUF /opt/ComfyUI/custom_nodes/ComfyUI-GGUF && \
+    git clone --depth=1 https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo /opt/ComfyUI/custom_nodes/ComfyUI-MiniMax-H3-Turbo
 
 # Purge Venv Cache & Bytecode to Minimize Layer Size
 RUN python -m pip cache purge && \
@@ -62,17 +56,16 @@ LABEL org.opencontainers.image.title="amd-strix-halo-comfyui-toolboxes" \
 # Install Runtime Toolchain & Graphics Drivers
 RUN dnf -y install --setopt=install_weak_deps=False --nodocs \
     python3.13 libatomic bash ca-certificates curl gcc make git \
-    ffmpeg-free mesa-libGL mesa-libEGL mesa-dri-drivers glfw \
+    ffmpeg-free mesa-libGL mesa-libEGL mesa-dri-drivers vim dialog \
     && dnf clean all && rm -rf /var/cache/dnf/* /tmp/* /var/tmp/*
 
 # Copy Application Code & Virtual Environment
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /opt/ComfyUI /opt/ComfyUI
-COPY --from=builder /opt/qwen-image-studio /opt/qwen-image-studio
-COPY --from=builder /opt/wan-video-studio /opt/wan-video-studio
 
 # Copy Scripts and Workflows in Consolidated Layers
 COPY scripts/ /opt/
+RUN chmod 0755 /opt/model_manager.py && ln -s /opt/model_manager.py /opt/venv/bin/model_manager
 COPY workflows/ /opt/ComfyUI/user/default/workflows/
 COPY workflows/API /opt/comfy-workflows
 
