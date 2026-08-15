@@ -44,6 +44,9 @@ podman run --rm -it \
 
 Mount `/mnt/comfyui/root/` from your host so you don't have to download again on every container restart. The models download folder on your container in `/root/comfy-models/`.
 
+> [!TIP]
+> Use your `HF_TOKEN` for faster download.
+
 ## 2. Run the ComfyUI server
 
 ```shell
